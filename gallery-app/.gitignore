@@ -34,3 +34,8 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# Screens
+Databaseservice.jsx
+ImagelocationService.jsx
+MapScreen.jsx
