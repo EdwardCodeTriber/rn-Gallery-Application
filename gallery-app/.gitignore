@@ -38,4 +38,3 @@ yarn-error.*
 # Screens
 Databaseservice.jsx
 ImagelocationService.jsx
-MapScreen.jsx
