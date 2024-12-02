@@ -36,5 +36,4 @@ yarn-error.*
 *.tsbuildinfo
 
 # Screens
-Databaseservice.jsx
 ImagelocationService.jsx

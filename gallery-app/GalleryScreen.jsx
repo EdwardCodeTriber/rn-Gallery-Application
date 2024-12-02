@@ -115,14 +115,14 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   captureButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: 'rgb(216, 128, 81)',
     padding: 15,
     margin: 10,
     borderRadius: 10,
     alignItems: 'center',
   },
   captureButtonText: {
-    color: 'white',
+    color: 'black',
     fontWeight: 'bold',
   },
   modalContainer: {
