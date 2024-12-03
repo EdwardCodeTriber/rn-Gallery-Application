@@ -1,44 +1,71 @@
-import React, { useEffect } from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
-import GalleryScreen from "./GalleryScreen";
-import MapScreen from "./MapScreen";
-import { initializeDatabase } from "./DatabaseService";
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 
+import GalleryScreen from './GalleryScreen';
+import MapScreen from './MapScreen';
+import CameraScreen from './CameraScreen';
+
+const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-export default function App() {
-  useEffect(() => {
-    initializeDatabase()
-      .then(() => console.log("Database initialized successfully"))
-      .catch((error) => {
-        console.error("Database initialization failed:", error);
-      });
-  }, []);
+function MainTabNavigator() {
+  return (
+    <Tab.Navigator>
+      <Tab.Screen 
+        name="Gallery" 
+        component={GalleryScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="images" color={color} size={size} />
+          )
+        }}
+      />
+      <Tab.Screen 
+        name="Map" 
+        component={MapScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="map" color={color} size={size} />
+          )
+        }}
+      />
+      <Tab.Screen 
+        name="Camera" 
+        component={CameraScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="camera" color={color} size={size} />
+          )
+        }}
+      />
+    </Tab.Navigator>
+  );
+}
 
+export default function App() {
   return (
     <NavigationContainer>
-      <Tab.Navigator>
-        <Tab.Screen
-          name="Gallery"
-          component={GalleryScreen}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="images" color={color} size={size} />
-            ),
-          }}
+      <Stack.Navigator>
+        <Stack.Screen 
+          name="Main" 
+          component={MainTabNavigator} 
+          options={{ headerShown: false }} 
         />
-        <Tab.Screen
-          name="Map"
-          component={MapScreen}
-          options={{
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="map" color={color} size={size} />
-            ),
-          }}
+        <Stack.Screen 
+          name="Camera" 
+          component={CameraScreen} 
+          options={{ 
+            title: 'Take a Picture',
+            headerStyle: {
+              backgroundColor: 'black',
+            },
+            headerTintColor: 'white',
+          }} 
         />
-      </Tab.Navigator>
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }

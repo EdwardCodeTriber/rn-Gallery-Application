@@ -3,9 +3,9 @@ import { Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 
-const ImageLocationService = {
+class ImageLocationService {
   // Request camera and storage permissions
-  requestPermissions: async () => {
+  requestPermissions = async () => {
     try {
       const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
       const { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
@@ -15,10 +15,10 @@ const ImageLocationService = {
       console.error('Permission request error:', error);
       return false;
     }
-  },
+  }
 
   // Pick image from camera
-  pickImageFromCamera: async () => {
+  pickImageFromCamera = async () => {
     try {
       // Request permissions
       const permissionsGranted = await this.requestPermissions();
@@ -53,10 +53,10 @@ const ImageLocationService = {
       );
       return null;
     }
-  },
+  }
 
   // Get current location
-  getCurrentLocation: async () => {
+  getCurrentLocation = async () => {
     try {
       // Request location permission if not already granted
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -86,6 +86,7 @@ const ImageLocationService = {
       return null;
     }
   }
-};
+}
+
 
 export default ImageLocationService;

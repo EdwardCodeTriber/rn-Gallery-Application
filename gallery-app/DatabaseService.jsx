@@ -1,123 +1,95 @@
 import * as SQLite from 'expo-sqlite';
 
-// Correct database opening and initialization
-const openDatabase = () => {
-  const db = SQLite.openDatabaseAsync('gallery.db');
-  
-  if (!db) {
-    console.error('Failed to open database');
+// Open database
+const openDatabase = async () => {
+  try {
+    const db = await SQLite.openDatabaseAsync('gallery.db');
+    return db;
+  } catch (error) {
+    console.error('Failed to open database:', error);
     return null;
   }
-  
-  return db;
 };
 
 // Initialize database tables
-const initializeDatabase = () => {
-  return new Promise((resolve, reject) => {
-    const db = openDatabase();
+const initializeDatabase = async () => {
+  try {
+    const db = await openDatabase();
     
     if (!db) {
-      reject(new Error('Database could not be opened'));
-      return;
+      throw new Error('Database could not be opened');
     }
 
-    db.transaction(tx => {
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS images (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          uri TEXT NOT NULL,
-          latitude REAL,
-          longitude REAL,
-          timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-          description TEXT
-        )`,
-        [],
-        () => {
-          console.log('Images table created successfully');
-          resolve();
-        },
-        (_, error) => {
-          console.error('Error creating images table:', error);
-          reject(error);
-        }
-      );
-    }, 
-    (error) => {
-      console.error('Transaction error:', error);
-      reject(error);
-    }, 
-    () => {
-      console.log('Transaction completed');
-    });
-  });
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS images (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        uri TEXT NOT NULL,
+        latitude REAL,
+        longitude REAL,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        description TEXT
+      )
+    `);
+
+    console.log('Images table created successfully');
+  } catch (error) {
+    console.error('Error initializing database:', error);
+    throw error;
+  }
 };
 
 // CRUD Operations
 const DatabaseService = {
   // Get database instance for each operation
-  getDatabase: () => {
-    return SQLite.openDatabase('gallery.db');
+  getDatabase: async () => {
+    return await SQLite.openDatabaseAsync('gallery.db');
   },
 
   // Add new image
-  addImage: (uri, latitude, longitude, description) => {
-    return new Promise((resolve, reject) => {
-      const db = DatabaseService.getDatabase();
-      db.transaction(tx => {
-        tx.executeSql(
-          'INSERT INTO images (uri, latitude, longitude, description) VALUES (?, ?, ?, ?)',
-          [uri, latitude, longitude, description],
-          (_, { insertId }) => resolve(insertId),
-          (_, error) => reject(error)
-        );
-      });
-    });
+  addImage: async (uri, latitude, longitude, description) => {
+    const db = await DatabaseService.getDatabase();
+    
+    const result = await db.runAsync(
+      'INSERT INTO images (uri, latitude, longitude, description) VALUES (?, ?, ?, ?)',
+      [uri, latitude, longitude, description]
+    );
+    
+    return result.lastInsertRowId;
   },
 
   // Get all images
-  getAllImages: () => {
-    return new Promise((resolve, reject) => {
-      const db = DatabaseService.getDatabase();
-      db.transaction(tx => {
-        tx.executeSql(
-          'SELECT * FROM images ORDER BY timestamp DESC',
-          [],
-          (_, { rows }) => resolve(rows._array),
-          (_, error) => reject(error)
-        );
-      });
-    });
+  getAllImages: async () => {
+    const db = await DatabaseService.getDatabase();
+    
+    const result = await db.getAllAsync(
+      'SELECT * FROM images ORDER BY timestamp DESC'
+    );
+    
+    return result;
   },
 
   // Delete image by ID
-  deleteImage: (id) => {
-    return new Promise((resolve, reject) => {
-      const db = DatabaseService.getDatabase();
-      db.transaction(tx => {
-        tx.executeSql(
-          'DELETE FROM images WHERE id = ?',
-          [id],
-          (_, result) => resolve(result),
-          (_, error) => reject(error)
-        );
-      });
-    });
+  deleteImage: async (id) => {
+    const db = await DatabaseService.getDatabase();
+    
+    const result = await db.runAsync(
+      'DELETE FROM images WHERE id = ?',
+      [id]
+    );
+    
+    return result;
   },
 
   // Search images by location or description
-  searchImages: (query) => {
-    return new Promise((resolve, reject) => {
-      const db = DatabaseService.getDatabase();
-      db.transaction(tx => {
-        tx.executeSql(
-          'SELECT * FROM images WHERE description LIKE ? OR latitude LIKE ? OR longitude LIKE ?',
-          [`%${query}%`, `%${query}%`, `%${query}%`],
-          (_, { rows }) => resolve(rows._array),
-          (_, error) => reject(error)
-        );
-      });
-    });
+  searchImages: async (query) => {
+    const db = await DatabaseService.getDatabase();
+    
+    const result = await db.getAllAsync(
+      'SELECT * FROM images WHERE description LIKE ? OR latitude LIKE ? OR longitude LIKE ?',
+      [`%${query}%`, `%${query}%`, `%${query}%`]
+    );
+    
+    return result;
   }
 };
 
