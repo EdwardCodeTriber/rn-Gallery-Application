@@ -44,27 +44,61 @@ const CameraScreen = ({ navigation }) => {
 
   const takePicture = async () => {
     try {
-      if (!cameraRef.current) return;
-
-      const photo = await cameraRef.current.takePictureAsync();
-
-      // Get current location
-      const location = await Location.getCurrentPositionAsync({});
-
+      if (!cameraRef.current) {
+        Alert.alert("Error", "Camera is not ready");
+        return;
+      }
+  
+      // Capture the photo
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.7, // Optional: compress the image to save storage space
+      });
+  
+      // Optional: Check if location services are enabled
+      let latitude = null;
+      let longitude = null;
+  
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        
+        if (status === 'granted') {
+          const location = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced // Choose an appropriate accuracy
+          });
+  
+          latitude = location.coords.latitude;
+          longitude = location.coords.longitude;
+        }
+      } catch (locationError) {
+        console.warn("Could not retrieve location:", locationError);
+        // Continue with null coordinates
+      }
+  
       // Save to media library
-      await MediaLibrary.createAssetAsync(photo.uri);
-
+      try {
+        await MediaLibrary.createAssetAsync(photo.uri);
+      } catch (mediaLibraryError) {
+        console.warn("Could not save to media library:", mediaLibraryError);
+        // Continue even if media library save fails
+      }
+  
       // Save to database
-      await DatabaseService.addImage(
-        photo.uri,
-        location.coords.latitude,
-        location.coords.longitude,
-        "Captured Image"
-      );
-
+      try {
+        await DatabaseService.addImage(
+          photo.uri,
+          latitude,
+          longitude,
+          "Captured Image"
+        );
+      } catch (dbError) {
+        console.error("Failed to save image to database:", dbError);
+        Alert.alert("Database Error", "Could not save image to database");
+        // Optionally, you might want to delete the photo or handle this differently
+      }
+  
       // Set captured image for preview
       setCapturedImage(photo.uri);
-
+  
       Alert.alert("Success", "Image captured and saved!");
     } catch (error) {
       console.error("Error capturing image:", error);
