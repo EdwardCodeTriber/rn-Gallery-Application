@@ -22,10 +22,12 @@ const GalleryScreen = ({ navigation }) => {
 
   const loadImages = async () => {
     try {
-      const allImages = await DatabaseService.getAllImages();
-      setImages(allImages);
+      // Destructure allImages from the returned object
+      const { allImages } = await DatabaseService.getAllImages();
+      setImages(allImages || []);
     } catch (error) {
       console.error('Failed to load images:', error);
+      setImages([]);
     }
   };
 
@@ -66,6 +68,11 @@ const GalleryScreen = ({ navigation }) => {
         renderItem={renderImage}
         keyExtractor={(item) => item.id.toString()}
         numColumns={3}
+        ListEmptyComponent={() => (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No images captured yet</Text>
+          </View>
+        )}
       />
       
       <TouchableOpacity 
@@ -101,6 +108,7 @@ const GalleryScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+
   container: {
     flex: 1,
     backgroundColor: '#f4f4f4',
@@ -143,7 +151,18 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     color: 'black',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 50,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: 'gray',
   }
 });
 
 export default GalleryScreen;
+

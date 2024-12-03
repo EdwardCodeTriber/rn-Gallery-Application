@@ -4,6 +4,10 @@ import * as SQLite from 'expo-sqlite';
 const openDatabase = async () => {
   try {
     const db = await SQLite.openDatabaseAsync('gallery.db');
+    
+    // Set WAL journal mode for better performance
+    await db.execAsync(`PRAGMA journal_mode = WAL;`);
+    
     return db;
   } catch (error) {
     console.error('Failed to open database:', error);
@@ -45,10 +49,11 @@ const DatabaseService = {
     return await SQLite.openDatabaseAsync('gallery.db');
   },
 
-  // Add new image
+  // Add new image with various parameter binding methods
   addImage: async (uri, latitude, longitude, description) => {
     const db = await DatabaseService.getDatabase();
     
+    // Method 1: Array-based parameter binding
     const result = await db.runAsync(
       'INSERT INTO images (uri, latitude, longitude, description) VALUES (?, ?, ?, ?)',
       [uri, latitude, longitude, description]
@@ -57,39 +62,100 @@ const DatabaseService = {
     return result.lastInsertRowId;
   },
 
-  // Get all images
+  // Get all images with different retrieval methods
   getAllImages: async () => {
     const db = await DatabaseService.getDatabase();
     
-    const result = await db.getAllAsync(
+    // Method 1: Get all rows as an array
+    const allImages = await db.getAllAsync(
       'SELECT * FROM images ORDER BY timestamp DESC'
     );
     
-    return result;
+    // Method 2: Iterate through rows
+    const iteratedImages = [];
+    for await (const row of db.getEachAsync('SELECT * FROM images ORDER BY timestamp DESC')) {
+      iteratedImages.push(row);
+    }
+    
+    // Method 3: Get first image
+    const firstImage = await db.getFirstAsync('SELECT * FROM images ORDER BY timestamp DESC');
+    
+    return {
+      allImages,
+      iteratedImages,
+      firstImage
+    };
   },
 
-  // Delete image by ID
+  // Delete image by ID with different parameter binding
   deleteImage: async (id) => {
     const db = await DatabaseService.getDatabase();
     
-    const result = await db.runAsync(
+    // Method 1: Array-based parameter binding
+    const resultArray = await db.runAsync(
       'DELETE FROM images WHERE id = ?',
       [id]
     );
     
-    return result;
+    // Method 2: Named parameter binding
+    const resultNamed = await db.runAsync(
+      'DELETE FROM images WHERE id = $imageId',
+      { $imageId: id }
+    );
+    
+    return {
+      arrayBinding: resultArray,
+      namedBinding: resultNamed
+    };
   },
 
-  // Search images by location or description
+  // Search images with multiple parameter binding and retrieval methods
   searchImages: async (query) => {
     const db = await DatabaseService.getDatabase();
     
-    const result = await db.getAllAsync(
+    // Method 1: Array-based LIKE search
+    const arrayResults = await db.getAllAsync(
       'SELECT * FROM images WHERE description LIKE ? OR latitude LIKE ? OR longitude LIKE ?',
       [`%${query}%`, `%${query}%`, `%${query}%`]
     );
     
-    return result;
+    // Method 2: Named parameter LIKE search
+    const namedResults = await db.getAllAsync(
+      'SELECT * FROM images WHERE description LIKE $query OR latitude LIKE $query OR longitude LIKE $query',
+      { $query: `%${query}%` }
+    );
+    
+    // Method 3: Get first matching result
+    const firstResult = await db.getFirstAsync(
+      'SELECT * FROM images WHERE description LIKE ? OR latitude LIKE ? OR longitude LIKE ? LIMIT 1',
+      [`%${query}%`, `%${query}%`, `%${query}%`]
+    );
+    
+    return {
+      arrayResults,
+      namedResults,
+      firstResult
+    };
+  },
+
+  // Additional utility methods
+  getImageCount: async () => {
+    const db = await DatabaseService.getDatabase();
+    
+    const countResult = await db.getFirstAsync('SELECT COUNT(*) as count FROM images');
+    return countResult.count;
+  },
+
+  // Batch operations example
+  batchInsert: async (images) => {
+    const db = await DatabaseService.getDatabase();
+    
+    // Use execAsync for multiple inserts
+    const insertQuery = images.map(img => 
+      `INSERT INTO images (uri, latitude, longitude, description) VALUES ('${img.uri}', ${img.latitude}, ${img.longitude}, '${img.description}')`
+    ).join(';');
+    
+    await db.execAsync(insertQuery);
   }
 };
 

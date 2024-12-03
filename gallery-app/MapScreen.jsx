@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Image, StyleSheet } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { DatabaseService } from './DatabaseService';
 
@@ -12,8 +12,18 @@ const MapScreen = () => {
 
   const loadImageLocations = async () => {
     try {
-      const images = await DatabaseService.getAllImages();
-      setImageLocations(images.filter(img => img.latitude && img.longitude));
+      // Use the allImages from the returned object
+      const { allImages } = await DatabaseService.getAllImages();
+      
+      // Filter images with latitude and longitude
+      const validLocationImages = allImages.filter(img => 
+        img.latitude !== null && 
+        img.longitude !== null && 
+        img.latitude !== undefined && 
+        img.longitude !== undefined
+      );
+
+      setImageLocations(validLocationImages);
     } catch (error) {
       console.error('Failed to load image locations:', error);
     }
@@ -25,7 +35,7 @@ const MapScreen = () => {
         style={styles.map}
         initialRegion={{
           latitude: -26.280447,
-          longitude:  27.813399,
+          longitude: 27.813399,
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}
