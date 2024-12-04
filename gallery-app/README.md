@@ -35,16 +35,22 @@ Android Studio or Xcode (for simulator/emulator)
 ## Installation
 
 Clone the repository
-bashCopygit clone https://github.com/yourusername/geolocation-gallery-app.git
+bash
+Copy
+git clone https://github.com/yourusername/geolocation-gallery-app.git
 cd geolocation-gallery-app
 
 ## Install dependencies
-bashCopynpm install
+bash
+Copy
+ - npm install
 # or
 yarn install
 
 Install Expo dependencies
-bashCopyexpo install expo-location expo-sqlite expo-image-picker
+bash
+Copy
+ - npx expo install expo-location expo-sqlite expo-image-picker
 
 
 ## Configuration
@@ -54,3 +60,6 @@ The app requires the following permissions:
 ## Camera access
 Location services
 Storage access
+
+## Documentation link
+- https://docs.google.com/document/d/1YAC77GlpVoUMiNGoG04oMU6NJfBHGa4Whpbz3xIiHnI/edit?tab=t.0
