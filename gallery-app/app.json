@@ -24,10 +24,6 @@
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
-        "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
       ],
       "package": "com.thapelocode.galleryapp"
@@ -38,8 +34,7 @@
     "plugins": [
       [
         "expo-sqlite",
-        
-          {
+        {
           "enableFTS": true,
           "useSQLCipher": true,
           "android": {
@@ -60,6 +55,11 @@
           "locationAlwaysAndWhenInUsePermission": "Allow $(galleryapp) to use your location."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "74c99936-754a-4aea-b461-62652c4792e1"
+      }
+    }
   }
 }
